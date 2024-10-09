@@ -123,7 +123,7 @@
 ;; Let's say we are working on a chess game and have model our chess board like this :
 
 (def chess-board
-  ^{:type 'chess-board}
+  ^{:type 'chess-board} ;; let's give it a type, so (type chess-board) returns chess-board instead of a set
   #{{:kind :king  :player :white :pos [0 5]}
     {:kind :rook  :player :white :pos [5 1]}
     {:kind :pawn  :player :white :pos [5 3]}
@@ -160,10 +160,20 @@
       })
 
   ;; The important part there are :id, :pred, and :on-create.
-  ;; The :id will be the one displayed on the visualizers dropdown.
-  ;; :pred is a predicate on the data extracted from values, to see if this visualizer
-  ;; applies for it.
-  ;; And :on-create will be a function that receives this data and renders a java fx node.
+  ;; The :id will be the one displayed on the visualizers dropdown, and re-registering a visualizer
+  ;; with the same id will replace the previous one.
+  ;; :pred is a predicate on the data extracted from values, it should return true if this visualizer
+  ;; can handle the value.
+  ;; And :on-create will be a function that receives this value and renders a java fx node.
+
+  ;; Optionally you can provide :on-update and :on-destroy.
+  ;; :on-update will receive values via `fsa/data-window-val-update`. It will also get a handle to
+  ;; the original value (the one that created the DataWindow) and whatever map was returned by :on-create.
+  ;; :on-destroy will be called everytime a visualizer gets removed, because you swapped your current visualizer
+  ;; or because you went back with breadcrums. It can be useful in case you need to clear resources created by
+  ;; :on-create.
+
+  ;; The three of them should allow to create some pretty fancy stateful visualizers like the :scope one.
 
   ;; You can check what data you have available at the current value on a DataWindow with :
   (viz/data-window-current-val :YOUR-CHESS-BOARD-DW-ID)
