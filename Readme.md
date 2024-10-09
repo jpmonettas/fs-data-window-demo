@@ -15,14 +15,15 @@ You can use FlowStorm DataWindows like you use any other data exploration tool l
 
 If you are a FlowStorm user, DataWindows are replacing the old value inspector, so they will also be available everywhere in the FlowStorm UI.
 
-The goals for the new DataWindows are :
+The goals for DataWindows are to support :
 
-* Provide a way to navigate nested structures in lazy way
-* Support lazy/infinite sequences navigation
-* Support multiple visualizations for each value
-* Provide tools for the user to add custom visualizations on the fly
-* Support clojure.datafy navigation out of the box
-* Provide mechanisms for realtime data visualization
+* a way to navigate nested structures in lazy way (no matter how nested)
+* lazy/infinite sequences navigation
+* multiple visualizations for each value
+* tools for the user to add custom visualizations on the fly
+* clojure.datafy navigation out of the box
+* a mechanisms for realtime data visualization
+* a way to define the current sub-values so you can use them at the repl
 
 ## How to use it
 
