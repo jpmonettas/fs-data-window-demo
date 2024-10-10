@@ -120,7 +120,8 @@
 
 ;; One important feature of DataWindows is they allow users to extend visualizers.
 
-;; Let's say we are working on a chess game and have model our chess board like this :
+;; Inspired on this great article https://neuroning.com/boardgames-exercise/ let's say we are working on a
+;; chess game and have model our chess board like this :
 
 (def chess-board
   ^{:type 'chess-board} ;; let's give it a type, so (type chess-board) returns chess-board instead of a set
