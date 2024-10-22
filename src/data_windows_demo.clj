@@ -302,7 +302,7 @@
   (import '[java.io FileInputStream])
 
   ;; Let's tap any binary file byte array
-  (tap> (.readAllBytes (FileInputStream. "./resources/ant.png")))
+  (tap> (.readAllBytes (FileInputStream. "./resources/ant_dark.gif")))
 
   ;; Now open its data window and try the :bin-byte-array and :hex-byte-array visualizations
 
