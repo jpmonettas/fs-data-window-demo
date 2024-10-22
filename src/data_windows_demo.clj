@@ -156,7 +156,7 @@
       :on-create (fn [val] {:fx/node :any-java-fx-node-that-renders-the-value
                             :more-ctx-data :anything})
       ;; OPTIONALLY
-      :on-update (fn [val created-ctx-map update-value] )
+      :on-update (fn [val created-ctx-map {:keys [new-val]}] )
       :on-destroy (fn [created-ctx-map] )
       })
 
@@ -287,5 +287,23 @@
 
   ;; Set the default visualizer for entities
   (viz/set-default-visualizer "datascript.impl.entity.Entity" :map)
+
+  )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Numbers and bytes arrays visualizations ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(comment
+
+  ;; All int? numbers can be visualized in deciml, hex, and binary.
+  (tap> 42)
+
+  (import '[java.io FileInputStream])
+
+  ;; Let's tap any binary file byte array
+  (tap> (.readAllBytes (FileInputStream. "./resources/ant.png")))
+
+  ;; Now open its data window and try the :bin-byte-array and :hex-byte-array visualizations
 
   )
