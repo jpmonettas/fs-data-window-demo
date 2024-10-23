@@ -391,4 +391,6 @@
                        food-s (if (:food new-val) "🍒"  "")
                        data-s (format "Dir: %s, Food: %s" dir-s food-s)]
                    (.setText ^Label data-label data-s)))})
+
+  (viz/add-default-visualizer (fn [val-data] (= "ant" (:flow-storm.runtime.values/type val-data))) :ant)
   )

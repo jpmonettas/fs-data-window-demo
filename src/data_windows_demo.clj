@@ -83,7 +83,8 @@
   ;; and optionally a tag for the breadcrum.
   (fsa/data-window-push-val :changing-long 0 "a-long")
 
-  ;; We can also send updates to the current value showing on a DataWindow like this :
+  ;; You should see 3 visualizers for the number, :int, :preview and :scope.
+  ;; Since :preview and :scope supports updates we can update the current value showing on a DataWindow like this :
   (fsa/data-window-val-update :changing-long 0.5)
 
   ;; But let's try something a little bit more fun, by creating a thread that sends updates
@@ -124,7 +125,6 @@
 ;; chess game and have model our chess board like this :
 
 (def chess-board
-  ^{:type 'chess-board} ;; let's give it a type, so (type chess-board) returns chess-board instead of a set
   #{{:kind :king  :player :white :pos [0 5]}
     {:kind :rook  :player :white :pos [5 1]}
     {:kind :pawn  :player :white :pos [5 3]}
@@ -192,7 +192,9 @@
 
   (fs-values/register-data-aspect-extractor
    {:id :chess-board
-    :pred (fn [val] (= 'chess-board (type val)))
+    :pred (fn [val] (and (set? val)
+                         (let [{:keys [kind player pos]} (first val)]
+                           (and kind player pos))))
     :extractor (fn [board] {:chess/board board})})
 
   ;; Now if we discard and re-open our board DataWindow and re-check it :
@@ -244,11 +246,14 @@
   ;; After registering it, if you re-open the DataWindow for the board you should see a new option on the
   ;; visualizers dropdown called :chess-board. Clicking it should show a proper board.
 
-  ;; You can make it the default by calling `set-default-visualizer` which takes a type name and
+  ;; You can make it the default by calling `add-default-visualizer` which takes a predicate on the val-data (the one returned by :extractor) and
   ;; a visualizer key.
-  (viz/set-default-visualizer "chess-board" :chess-board)
+  (viz/add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :chess-board)) :chess-board)
 
   ;; For all FlowStorm provided visualizers take a look at `flow-storm.debugger.ui.data-windows.visualizers` namespace.
+
+  ;; Default visualizer predicates are added in a stack, and tried from the top. This means that you can always overwrite a default by adding a
+  ;; new one.
   )
 
 ;;;;;;;;;;;;;;;;;;;;
@@ -286,7 +291,7 @@
   ;; You can use them to navigate the graph.
 
   ;; Set the default visualizer for entities
-  (viz/set-default-visualizer "datascript.impl.entity.Entity" :map)
+  (viz/add-default-visualizer (fn [val-data] (= "datascript.impl.entity.Entity" (:flow-storm.runtime.values/type val-data))) :map)
 
   )
 
@@ -294,12 +299,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Numbers and bytes arrays visualizations ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(import '[java.io FileInputStream])
+
 (comment
 
   ;; All int? numbers can be visualized in deciml, hex, and binary.
   (tap> 42)
-
-  (import '[java.io FileInputStream])
 
   ;; Let's tap any binary file byte array
   (tap> (.readAllBytes (FileInputStream. "./resources/ant_dark.gif")))
