@@ -137,6 +137,7 @@
   ;; Let's tap it and open a DataWindow for it
   (tap> chess-board)
 
+  (flow-storm.api/data-window-push-val :chess-board-dw chess-board "chess-board")
   ;; We have already some visualizers to explore this data, but it would be great
   ;; for debugging if we could have a visualizer that shows a proper chess board.
   ;; Let's try to define one.
@@ -261,6 +262,7 @@
 ;;;;;;;;;;;;;;;;;;;;
 
 ;; Now let's see DataWindows datafy navigation capabilities.
+
 ;; For this we will create a small datascript db, since it's entities
 ;; alredy implement datafy protocols.
 
@@ -295,6 +297,40 @@
 
   )
 
+;; As a second example let's do it with jdbc.next which also has support for datafy/nav
+(clojure.repl.deps/add-lib 'com.github.seancorfield/next.jdbc {:mvn/version "1.3.955"})
+(clojure.repl.deps/add-lib 'com.h2database/h2 {:mvn/version "2.2.224"})
+
+(require '[next.jdbc :as jdbc])
+
+(comment
+
+  (def db {:dbtype "h2" :dbname "example"})
+  (def ds (jdbc/get-datasource db))
+
+  ;; create some tables
+  (jdbc/execute! ds ["
+create table address (
+  id int auto_increment primary key,
+  name varchar(32),
+  email varchar(255))"])
+
+  (jdbc/execute! ds ["
+create table person (
+  id int auto_increment primary key,
+  name varchar(32),
+  address_id int,
+FOREIGN KEY (address_id) REFERENCES address(id)
+)"])
+
+  ;; insert some stuff
+  (jdbc/execute! ds ["insert into address(name,email) values('Rich Hickey','rhickey@gmail.com')"])
+  (jdbc/execute! ds ["insert into person(name,address_id) values('Rich Hickey',1)"])
+
+  ;; tap some query results
+  (tap> (jdbc/execute! ds ["select * from person"]))
+
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Numbers and bytes arrays visualizations ;;
