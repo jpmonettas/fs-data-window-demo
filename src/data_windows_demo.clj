@@ -23,16 +23,17 @@
   ;; Let's tap something simple like a string
   (tap> "Clojure rocks!")
 
-  ;; You should be seeing the tapped value on the taps list, double clicking on it
-  ;; should open a DataWindow for it.
+  ;; In FlowStorm you will find your tapped values on the Outputs tool, under the Taps panel.
+  ;; Clicking on any tap will put the value on the top panel, called a data window.
 
-  ;; There are a bunch of things here.
+  ;; There are many ways to open data windows in FlowStorm, we are going to start with tap because is practical for a demo.
 
-  ;; At the top, we have the `data-window-id`, should be something like `:value-1`. For
-  ;; taps this id will be assigned automatically, and as you will see soon it can be
-  ;; used to refer to the DataWindow programatically.
+  ;; Let's explore this data window, there are a bunch of things there.
 
-  ;; Right after in magenta are the DataWindow breadcrums, you can use them for navigating back when drilling
+  ;; At the top, we have the `data-window-id`, which in this case is `:outputs`, and as you will see soon it can be
+  ;; used to refer to the data window programatically.
+
+  ;; Right after in magenta are the data window breadcrums, you can use them for navigating back when drilling
   ;; down on nested data.
 
   ;; On the next row we have a dropdown that let us choose between different visualizers for the current value,
@@ -45,7 +46,7 @@
 
   ;; Use the breadcrums at the top to navigate back.
 
-  ;; Go ahead and discard the DataWindow if you want, but you can have multiple DataWindows at the same time.
+  ;; Go ahead and discard the data window if you want, but you can have multiple data windows at the same time.
 
   ;; Let's now tap some nested data with infinite sequences
   (tap> {:a (filter odd? (range))})
@@ -73,22 +74,22 @@
 ;; Realtime visualizers ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Now let's explore another feature of DataWindows, which allows us to see
+;; Now let's explore another feature of data windows, which allows us to see
 ;; values while they are changing.
 
 (comment
 
-  ;; First, we can push a value directly to a DataWindow (even when it doesn't exist)
-  ;; by callling `fsa/data-window-push-val`, providing a DataWindow id, the value itself
+  ;; First, we can push a value directly to a data window (even when it doesn't exist)
+  ;; by callling `fsa/data-window-push-val`, providing a data window id, the value itself
   ;; and optionally a tag for the breadcrum.
   (fsa/data-window-push-val :changing-long 0 "a-long")
 
   ;; You should see 3 visualizers for the number, :int, :preview and :scope.
-  ;; Since :preview and :scope supports updates we can update the current value showing on a DataWindow like this :
+  ;; Since :preview and :scope supports updates we can update the current value showing on a data window like this :
   (fsa/data-window-val-update :changing-long 0.5)
 
   ;; But let's try something a little bit more fun, by creating a thread that sends updates
-  ;; to our :changing-long DataWindow following a sine wave.
+  ;; to our :changing-long data window following a sine wave.
 
   (def scale 0.2) ;; define a scale we will soon redefine while the loop is running
 
@@ -119,7 +120,7 @@
 ;; Custom visualizers ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; One important feature of DataWindows is they allow users to extend visualizers.
+;; One important feature of data windows is they allow users to extend visualizers.
 
 ;; Inspired on this great article https://neuroning.com/boardgames-exercise/ let's say we are working on a
 ;; chess game and have model our chess board like this :
@@ -134,10 +135,9 @@
 
 (comment
 
-  ;; Let's tap it and open a DataWindow for it
-  (tap> chess-board)
-
+  ;; Let's open a data window for it using flow-storm.api/data-window-push-val
   (flow-storm.api/data-window-push-val :chess-board-dw chess-board "chess-board")
+
   ;; We have already some visualizers to explore this data, but it would be great
   ;; for debugging if we could have a visualizer that shows a proper chess board.
   ;; Let's try to define one.
@@ -170,15 +170,15 @@
 
   ;; Optionally you can provide :on-update and :on-destroy.
   ;; :on-update will receive values via `fsa/data-window-val-update`. It will also get a handle to
-  ;; the original value (the one that created the DataWindow) and whatever map was returned by :on-create.
+  ;; the original value (the one that created the data window) and whatever map was returned by :on-create.
   ;; :on-destroy will be called everytime a visualizer gets removed, because you swapped your current visualizer
   ;; or because you went back with breadcrums. It can be useful in case you need to clear resources created by
   ;; :on-create.
 
   ;; The three of them should allow to create some pretty fancy stateful visualizers like the :scope one.
 
-  ;; You can check what data you have available at the current value on a DataWindow with :
-  (viz/data-window-current-val :YOUR-CHESS-BOARD-DW-ID)
+  ;; You can check what data you have available at the current value on a data window with :
+  (viz/data-window-current-val :chess-board-dw)
 
   ;; As you can see this data isn't suitable for rendering a proper board so let's change that.
   )
@@ -198,9 +198,9 @@
                            (and kind player pos))))
     :extractor (fn [board] {:chess/board board})})
 
-  ;; Now if we discard and re-open our board DataWindow and re-check it :
-  (viz/data-window-current-val :YOUR-CHESS-BOARD-DW-ID)
-  (viz/data-window-current-val :value-229)
+  ;; Now if we discard and re-open our board data window and re-check it :
+  (flow-storm.api/data-window-push-val :chess-board-dw chess-board "chess-board")
+  (viz/data-window-current-val :chess-board-dw)
 
   ;; we should see that we have this info available for the visualizers.
   ;; You may also notice that there is a :flow-storm.runtime.values/kinds key
@@ -244,8 +244,10 @@
                                gp)}))})
 
 
-  ;; After registering it, if you re-open the DataWindow for the board you should see a new option on the
+  ;; After registering it, if you re-open the data window for the board you should see a new option on the
   ;; visualizers dropdown called :chess-board. Clicking it should show a proper board.
+
+  (flow-storm.api/data-window-push-val :chess-board-dw chess-board "chess-board")
 
   ;; You can make it the default by calling `add-default-visualizer` which takes a predicate on the val-data (the one returned by :extractor) and
   ;; a visualizer key.
@@ -261,7 +263,7 @@
 ;; Datafy and nav ;;
 ;;;;;;;;;;;;;;;;;;;;
 
-;; Now let's see DataWindows datafy navigation capabilities.
+;; Now let's see data windows datafy navigation capabilities.
 
 ;; For this we will create a small datascript db, since it's entities
 ;; alredy implement datafy protocols.
@@ -340,7 +342,7 @@ FOREIGN KEY (address_id) REFERENCES address(id)
 
 (comment
 
-  ;; All int? numbers can be visualized in deciml, hex, and binary.
+  ;; All int? numbers can be visualized in decimal, hex, and binary.
   (tap> 42)
 
   ;; Let's tap any binary file byte array
