@@ -1,7 +1,8 @@
 (ns data-windows-demo
   (:require [flow-storm.api :as fsa]
             [flow-storm.debugger.ui.data-windows.visualizers :as viz]
-            [flow-storm.runtime.values :as fs-values]))
+            [flow-storm.runtime.values :as fs-values]
+            [clojure.string :as str]))
 
 ;; Let's start the FlowStorm UI first. Since we are using FlowStorm as a library, (without ClojureStorm),
 ;; we have to call local-connect.
@@ -349,5 +350,44 @@ FOREIGN KEY (address_id) REFERENCES address(id)
   (tap> (.readAllBytes (FileInputStream. "./resources/ant_dark.gif")))
 
   ;; Now open its data window and try the :bin-byte-array and :hex-byte-array visualizations
+
+  )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; An example hacking a simple fireworks visualizer ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(clojure.repl.deps/add-lib 'io.github.paintparty/fireworks {:mvn/version "0.10.3"})
+(clojure.repl.deps/add-lib 'lambdaisland/ansi {:mvn/version "0.2.37"})
+(require '[fireworks.core :as fire])
+(require '[lambdaisland.ansi :as ansi])
+(import '[javafx.scene.text Text TextFlow])
+(import '[javafx.scene.paint Color])
+
+
+(comment
+
+  (fs-values/register-data-aspect-extractor
+   {:id :fireworks
+    :pred (constantly true)
+    :extractor (fn [val]
+                 (let [fire-data (fire/? :data val)]
+                   {:fireworks/formatted-str (-> fire-data :formatted+ :string)}))})
+
+
+  (viz/register-visualizer
+   {:id :fireworks
+    :pred (fn [val] (contains? (::fs-values/kinds val) :fireworks))
+    :on-create (fn [{:keys [fireworks/formatted-str]}]
+                 (let [text-flow (TextFlow.)
+                       col-tokens (sequence ansi/apply-props (ansi/token-stream formatted-str))]
+                   (doseq [[{:keys [foreground]} txt] col-tokens]
+                     (let [[_ r g b] (or foreground [:rgb 150 150 150])
+                           text (doto (Text. txt)
+                                  (.setFill (Color/rgb r g b)))]
+                       (.add (.getChildren text-flow) text)))
+                   {:fx/node text-flow}))})
 
   )
