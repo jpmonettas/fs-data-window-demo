@@ -368,7 +368,7 @@ FOREIGN KEY (address_id) REFERENCES address(id)
 
 
 (comment
-
+(tap> chess-board)
   (fs-values/register-data-aspect-extractor
    {:id :fireworks
     :pred (constantly true)
@@ -381,7 +381,8 @@ FOREIGN KEY (address_id) REFERENCES address(id)
    {:id :fireworks
     :pred (fn [val] (contains? (::fs-values/kinds val) :fireworks))
     :on-create (fn [{:keys [fireworks/formatted-str]}]
-                 (let [text-flow (TextFlow.)
+                 (let [text-flow (doto (TextFlow.)
+                                   (.setStyle "-fx-font-family: 'monospaced';"))
                        col-tokens (sequence ansi/apply-props (ansi/token-stream formatted-str))]
                    (doseq [[{:keys [foreground]} txt] col-tokens]
                      (let [[_ r g b] (or foreground [:rgb 150 150 150])
